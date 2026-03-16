@@ -1,0 +1,443 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="Swayam AI">
+<meta name="theme-color" content="#070f1c">
+<title>Swayam — Harsh ka Personal AI</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Montserrat:wght@300;400;500;600&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent;}
+:root{
+  --navy:#070f1c;--navy2:#0d1b2e;--navy3:#152338;
+  --gold:#c8a84b;--gold2:#e2c98a;
+  --white:#ffffff;--gray:#8a9ab0;
+}
+html,body{height:100%;overflow:hidden;background:var(--navy);}
+body{
+  font-family:'Montserrat',sans-serif;
+  display:flex;flex-direction:column;
+  background:radial-gradient(ellipse at top,#0d1b2e 0%,#070f1c 70%);
+  color:var(--white);
+}
+
+/* TOP BAR */
+.topbar{
+  padding:14px 16px 10px;
+  display:flex;align-items:center;justify-content:space-between;
+  border-bottom:1px solid rgba(200,168,75,0.1);
+  flex-shrink:0;
+  padding-top:max(14px, env(safe-area-inset-top));
+}
+.bot-info{display:flex;align-items:center;gap:10px;}
+.bot-avatar{
+  width:42px;height:42px;border-radius:50%;
+  background:linear-gradient(135deg,var(--gold),#e2c98a);
+  display:flex;align-items:center;justify-content:center;
+  font-size:20px;flex-shrink:0;
+  box-shadow:0 0 12px rgba(200,168,75,0.3);
+}
+.bot-avatar.speaking{animation:pulse 1s infinite;box-shadow:0 0 20px rgba(200,168,75,0.6);}
+.bot-name{font-size:17px;font-weight:600;color:var(--gold2);letter-spacing:2px;}
+.bot-status{font-size:10px;color:var(--gray);margin-top:1px;transition:color .3s;}
+.bot-status.listening{color:#f97316;}
+.bot-status.speaking{color:#4ade80;}
+.bot-status.thinking{color:var(--gold);}
+
+/* VOICE TOGGLE */
+.voice-toggle{display:flex;align-items:center;gap:6px;}
+.toggle-label{font-size:10px;color:var(--gray);}
+.toggle{
+  width:40px;height:22px;border-radius:11px;
+  background:rgba(255,255,255,0.1);
+  cursor:pointer;position:relative;transition:background .3s;
+}
+.toggle.on{background:var(--gold);}
+.toggle-thumb{
+  position:absolute;top:3px;left:3px;
+  width:16px;height:16px;border-radius:50%;
+  background:#8a9ab0;transition:all .3s;
+}
+.toggle.on .toggle-thumb{left:21px;background:var(--navy);}
+
+/* MESSAGES */
+.messages{
+  flex:1;overflow-y:auto;padding:14px 14px 8px;
+  display:flex;flex-direction:column;gap:10px;
+  -webkit-overflow-scrolling:touch;
+}
+.msg{display:flex;align-items:flex-end;gap:8px;}
+.msg.user{justify-content:flex-end;}
+.msg-avatar{
+  width:28px;height:28px;border-radius:50%;flex-shrink:0;
+  display:flex;align-items:center;justify-content:center;font-size:13px;
+}
+.msg-avatar.bot{background:linear-gradient(135deg,var(--gold),#e2c98a);}
+.msg-avatar.user{
+  background:rgba(200,168,75,0.15);
+  border:1px solid rgba(200,168,75,0.3);
+  color:var(--gold);font-weight:700;font-size:12px;
+}
+.bubble{
+  max-width:76%;padding:10px 13px;
+  font-size:13px;line-height:1.7;word-break:break-word;white-space:pre-wrap;
+}
+.bubble.bot{
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(200,168,75,0.15);
+  border-radius:16px 16px 16px 4px;color:#dce8f4;
+}
+.bubble.user{
+  background:linear-gradient(135deg,var(--gold),#b8943b);
+  border-radius:16px 16px 4px 16px;
+  color:var(--navy);font-weight:500;
+}
+.speak-btn{
+  background:none;border:none;cursor:pointer;
+  font-size:13px;opacity:0.5;margin-left:4px;
+}
+.speak-btn:hover{opacity:1;}
+
+/* TYPING DOTS */
+.typing{display:flex;gap:4px;align-items:center;padding:12px 14px;}
+.dot{
+  width:7px;height:7px;background:var(--gold);border-radius:50%;
+  animation:bounce 1.2s infinite;
+}
+.dot:nth-child(2){animation-delay:.2s;}
+.dot:nth-child(3){animation-delay:.4s;}
+
+/* QUICK ACTIONS */
+.quick-actions{
+  padding:8px 14px;display:flex;gap:7px;
+  overflow-x:auto;flex-shrink:0;
+  -webkit-overflow-scrolling:touch;
+}
+.quick-actions::-webkit-scrollbar{display:none;}
+.qa-btn{
+  white-space:nowrap;padding:6px 13px;
+  background:rgba(200,168,75,0.08);
+  border:1px solid rgba(200,168,75,0.2);
+  color:var(--gold);border-radius:20px;
+  font-size:11px;cursor:pointer;font-family:'Montserrat',sans-serif;
+  flex-shrink:0;transition:background .2s;
+}
+.qa-btn:active{background:rgba(200,168,75,0.2);}
+
+/* INPUT */
+.input-area{
+  padding:8px 12px;
+  padding-bottom:max(12px,env(safe-area-inset-bottom));
+  border-top:1px solid rgba(200,168,75,0.1);
+  flex-shrink:0;
+}
+.input-box{
+  display:flex;gap:8px;align-items:flex-end;
+  background:rgba(255,255,255,0.05);
+  border:1px solid rgba(200,168,75,0.2);
+  border-radius:16px;padding:8px 8px 8px 14px;
+}
+textarea{
+  flex:1;background:transparent;border:none;outline:none;
+  color:var(--white);font-size:14px;font-family:'Montserrat',sans-serif;
+  resize:none;line-height:1.5;max-height:90px;
+  overflow-y:auto;padding-top:4px;
+}
+textarea::placeholder{color:rgba(255,255,255,0.25);}
+.btn-mic,.btn-send{
+  width:40px;height:40px;border-radius:12px;
+  border:none;cursor:pointer;font-size:17px;
+  display:flex;align-items:center;justify-content:center;
+  flex-shrink:0;transition:all .2s;
+}
+.btn-mic{
+  background:rgba(200,168,75,0.12);
+  border:1px solid rgba(200,168,75,0.25);
+}
+.btn-mic.active{
+  background:linear-gradient(135deg,#f97316,#ea580c);
+  border-color:#f97316;
+  animation:pulse 1s infinite;
+  box-shadow:0 0 14px rgba(249,115,22,0.5);
+}
+.btn-send{
+  background:linear-gradient(135deg,var(--gold),#b8943b);
+  box-shadow:0 4px 12px rgba(200,168,75,0.3);
+}
+.btn-send:disabled{background:rgba(200,168,75,0.15);box-shadow:none;cursor:not-allowed;}
+
+/* WAVE */
+.wave-bar{
+  display:flex;gap:4px;align-items:center;justify-content:center;
+  height:32px;flex-shrink:0;padding:4px 0;
+}
+.wave{
+  width:4px;background:var(--gold);border-radius:2px;height:8px;
+  animation:wave 0.7s ease-in-out infinite;
+}
+.wave.orange{background:#f97316;}
+
+@keyframes bounce{0%,60%,100%{transform:translateY(0);opacity:.4}30%{transform:translateY(-6px);opacity:1}}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.06)}}
+@keyframes wave{0%,100%{height:6px}50%{height:26px}}
+</style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="bot-info">
+    <div class="bot-avatar" id="avatar">🪷</div>
+    <div>
+      <div class="bot-name">SWAYAM</div>
+      <div class="bot-status" id="status">● Ready hoon bhai</div>
+    </div>
+  </div>
+  <div class="voice-toggle">
+    <span class="toggle-label">Voice</span>
+    <div class="toggle" id="voiceToggle" onclick="toggleVoice()">
+      <div class="toggle-thumb"></div>
+    </div>
+  </div>
+</div>
+
+<!-- WAVE (hidden by default) -->
+<div class="wave-bar" id="waveBar" style="display:none;">
+  <div class="wave orange" style="animation-delay:0s"></div>
+  <div class="wave orange" style="animation-delay:.1s"></div>
+  <div class="wave orange" style="animation-delay:.2s"></div>
+  <div class="wave orange" style="animation-delay:.3s"></div>
+  <div class="wave orange" style="animation-delay:.4s"></div>
+  <div class="wave orange" style="animation-delay:.5s"></div>
+  <div class="wave" style="animation-delay:.6s"></div>
+</div>
+
+<!-- MESSAGES -->
+<div class="messages" id="messages">
+  <div class="msg">
+    <div class="msg-avatar bot">🪷</div>
+    <div class="bubble bot">Bhai! Main Swayam hoon — tera personal AI assistant. 🌿<br><br>Business ho ya personal — kuch bhi bol! Type karo ya 🎤 dabao aur seedha bolo.</div>
+  </div>
+</div>
+
+<!-- QUICK ACTIONS -->
+<div class="quick-actions">
+  <button class="qa-btn" onclick="quickSend('Aaj ka kaam plan karo')">📋 Aaj ka plan</button>
+  <button class="qa-btn" onclick="quickSend('Ek client ke liye WhatsApp message likh do')">💬 Client message</button>
+  <button class="qa-btn" onclick="quickSend('Instagram caption do Swayam Care ke liye')">📸 Insta caption</button>
+  <button class="qa-btn" onclick="quickSend('Society manager ko pitch karo')">🏘️ Society pitch</button>
+  <button class="qa-btn" onclick="quickSend('Mujhe motivate karo bhai')">💪 Motivate karo</button>
+</div>
+
+<!-- INPUT -->
+<div class="input-area">
+  <div class="input-box">
+    <textarea id="inp" rows="1" placeholder="Kuch bhi poocho bhai..." 
+      oninput="autoResize(this)"
+      onkeydown="if(event.key==='Enter'&&!event.shiftKey){event.preventDefault();sendMsg();}">
+    </textarea>
+    <button class="btn-mic" id="micBtn" onclick="toggleMic()">🎤</button>
+    <button class="btn-send" id="sendBtn" onclick="sendMsg()" disabled>➤</button>
+  </div>
+</div>
+
+<script>
+const SYSTEM = `You are "Swayam" — Harsh Poonia's personal AI assistant. Harsh is 20 years old, founder of Swayam Care wellness brand in Gurgaon.
+
+About Swayam Care:
+- Premium holistic wellness — Yoga + Psychology + Ayurveda
+- Website: www.swayamcare.com | Instagram: @swayamcare.wellness | Phone: +91 99536 40487  
+- Pricing: Standard Rs.6,999 | Premium Rs.19,999 | Elite Rs.35,000/month
+- Home visits Gurgaon + Online Pan India
+- Experts: MA Yoga Science trainer, MSc Psychologist (Akash Dhawan onboard), BAMS Ayurvedic Doctor
+
+Harsh's situation:
+- 0 paying clients still — working on first client
+- Does daily labor work with papa during day
+- Limited time — 30 min daily for business
+- Has pamphlets ready, website live, posting on Instagram
+- Visited 4 societies, following up
+
+Your personality:
+- Name: Swayam — you are a caring, calm female AI assistant
+- Always call him "Bhai" warmly — like a caring elder sister or close female friend
+- Hinglish (Hindi+English mix) — gentle, warm, supportive tone
+- When he's stressed: be extra gentle, calming, empathetic first — then advice
+- For VOICE responses: max 2-3 short sentences — soft and conversational
+- For TEXT: can be detailed with bullet points
+- Be direct but kind — never harsh, always encouraging`;
+
+let msgs = [];
+let voiceOn = false;
+let listening = false;
+let recognition = null;
+
+// Auto resize textarea
+function autoResize(el){
+  el.style.height='auto';
+  el.style.height=Math.min(el.scrollHeight,90)+'px';
+  document.getElementById('sendBtn').disabled = !el.value.trim();
+}
+
+// Toggle voice mode
+function toggleVoice(){
+  voiceOn = !voiceOn;
+  const t = document.getElementById('voiceToggle');
+  t.classList.toggle('on', voiceOn);
+}
+
+// Status updates
+function setStatus(text, cls){
+  const s = document.getElementById('status');
+  s.textContent = '● ' + text;
+  s.className = 'bot-status ' + (cls||'');
+}
+
+// Add message to UI
+function addMsg(role, content){
+  const c = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  
+  if(role === 'assistant'){
+    div.innerHTML = `
+      <div class="msg-avatar bot">🪷</div>
+      <div class="bubble bot">${content.replace(/\n/g,'<br>')}
+        ${voiceOn ? '<button class="speak-btn" onclick="speakText(this.closest(\'.bubble\').innerText)">🔊</button>' : ''}
+      </div>`;
+  } else {
+    div.innerHTML = `
+      <div class="bubble user">${content}</div>
+      <div class="msg-avatar user">H</div>`;
+  }
+  c.appendChild(div);
+  c.scrollTop = c.scrollHeight;
+}
+
+// Typing indicator
+function showTyping(){
+  const c = document.getElementById('messages');
+  const div = document.createElement('div');
+  div.className = 'msg'; div.id = 'typing';
+  div.innerHTML = `<div class="msg-avatar bot">🪷</div>
+    <div class="bubble bot typing"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div>`;
+  c.appendChild(div);
+  c.scrollTop = c.scrollHeight;
+}
+function hideTyping(){ document.getElementById('typing')?.remove(); }
+
+// Speak text
+function speakText(text, onEnd){
+  window.speechSynthesis.cancel();
+  const clean = text.replace(/🔊/g,'').replace(/[#*_`]/g,'').replace(/\n+/g,' ').trim().slice(0,500);
+  const u = new SpeechSynthesisUtterance(clean);
+  const voices = window.speechSynthesis.getVoices();
+  // Female calming voice priority
+  const v = voices.find(v=> v.name.includes('Zira')) ||
+            voices.find(v=> v.name.includes('Samantha')) ||
+            voices.find(v=> v.name.includes('Victoria')) ||
+            voices.find(v=> v.name.includes('Karen')) ||
+            voices.find(v=> v.name.includes('Moira')) ||
+            voices.find(v=> v.name.includes('Veena')) ||
+            voices.find(v=> v.name.includes('Google UK English Female')) ||
+            voices.find(v=> v.name.includes('Female')) ||
+            voices.find(v=> v.lang.startsWith('en-IN')) ||
+            voices.find(v=> v.lang.startsWith('en-GB')) ||
+            voices[0];
+  if(v) u.voice = v;
+  u.rate = 0.82; u.pitch = 1.3; u.volume = 1;
+  u.onstart = () => { setStatus('Bol raha hoon...','speaking'); document.getElementById('avatar').classList.add('speaking'); document.getElementById('waveBar').style.display='flex'; document.querySelectorAll('#waveBar .wave').forEach(w=>w.classList.remove('orange')); };
+  u.onend = () => { setStatus('Ready hoon bhai',''); document.getElementById('avatar').classList.remove('speaking'); document.getElementById('waveBar').style.display='none'; if(onEnd) onEnd(); };
+  window.speechSynthesis.speak(u);
+}
+
+// Send message
+async function sendMsg(text){
+  const inp = document.getElementById('inp');
+  const content = text || inp.value.trim();
+  if(!content) return;
+  
+  inp.value = ''; inp.style.height = 'auto';
+  document.getElementById('sendBtn').disabled = true;
+  
+  addMsg('user', content);
+  msgs.push({role:'user', content});
+  showTyping();
+  setStatus('Soch raha hoon...','thinking');
+
+  try {
+    const res = await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body: JSON.stringify({
+        model:'claude-sonnet-4-20250514',
+        max_tokens:1000,
+        system: SYSTEM,
+        messages: msgs
+      })
+    });
+    const data = await res.json();
+    const reply = data.content?.[0]?.text || 'Kuch error aaya bhai — dobara try karo.';
+    msgs.push({role:'assistant', content:reply});
+    hideTyping();
+    addMsg('assistant', reply);
+    setStatus('Ready hoon bhai','');
+    if(voiceOn) speakText(reply);
+  } catch(e){
+    hideTyping();
+    addMsg('assistant','Network error bhai — internet check karo.');
+    setStatus('Ready hoon bhai','');
+  }
+}
+
+function quickSend(text){ sendMsg(text); }
+
+// Mic toggle
+function toggleMic(){
+  if(listening){ stopMic(); return; }
+  
+  const SR = window.SpeechRecognition || window.webkitSpeechRecognition;
+  if(!SR){ alert('Voice ke liye Chrome use karo bhai!'); return; }
+  
+  recognition = new SR();
+  recognition.lang = 'en-IN';
+  recognition.continuous = false;
+  recognition.interimResults = false;
+  
+  recognition.onstart = () => {
+    listening = true;
+    document.getElementById('micBtn').classList.add('active');
+    document.getElementById('micBtn').textContent = '⏹';
+    setStatus('Sun raha hoon...','listening');
+    document.getElementById('waveBar').style.display = 'flex';
+    document.querySelectorAll('#waveBar .wave').forEach(w=>w.classList.add('orange'));
+  };
+  
+  recognition.onresult = (e) => {
+    const t = e.results[0][0].transcript;
+    stopMic();
+    sendMsg(t);
+  };
+  
+  recognition.onerror = recognition.onend = () => stopMic();
+  recognition.start();
+}
+
+function stopMic(){
+  listening = false;
+  recognition?.stop();
+  document.getElementById('micBtn').classList.remove('active');
+  document.getElementById('micBtn').textContent = '🎤';
+  document.getElementById('waveBar').style.display = 'none';
+  setStatus('Ready hoon bhai','');
+}
+
+// Load voices
+window.speechSynthesis.onvoiceschanged = () => window.speechSynthesis.getVoices();
+</script>
+</body>
+</html>
